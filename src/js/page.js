@@ -5,17 +5,19 @@ var flagWidth = 100;
 var flagHeight = 50;
 var flagMargin = 10;
 
-var selected = null;
+var selected;
+var timer;
+
 var borderWidth = 5;
 var borderGraphics;   // selected 图形设备
 
 var flags = [
-  ["司令", "司令", "司令", "司令", "司令"],
-  ["司令", "", "司令", "", "司令"],
-  ["司令", "司令", "", "司令", "司令"],
-  ["司令", "", "司令", "", "司令"],
-  ["司令", "司令", "司令", "司令", "司令"],
-  ["司令", "司令", "司令", "司令", "司令"]
+  ["1", "2", "3", "4", "5"],
+  ["6", "", "7", "", "8"],
+  ["9", "0", "", "11", "22"],
+  ["33", "", "44", "", "55"],
+  ["66", "77", "88", "99", "00"],
+  ["111", "222", "333", "444", "555"]
 ];
 
 function makeFlag(text, pos) {
@@ -25,38 +27,51 @@ function makeFlag(text, pos) {
     var j = pos[1];
     var bmd = game.add.bitmapData(flagWidth, flagHeight);
     bmd.rect(0, 0, flagWidth, flagHeight, '#55ff55');
-    bmd.text("司令", 15, 25, '20px 宋体', 'black', false);
+    bmd.text(text, 15, 25, '20px 宋体', 'black', false);
     var x = marginLeft + (flagWidth + 2 * flagMargin) * j;
     var y = marginTop + (flagHeight + 2 * flagMargin) * i;
-    drawnObject = game.add.sprite(x, y, bmd);
-    // var button = game.add.button(
-    //   marginLeft + (flagWidth + 2 * flagMargin) * j,
-    //   marginTop + (flagHeight + 2 * flagMargin) * i,
-    //   text,
-    //   function(){},
-    //   this, 0, 0, 0);
-    //
-    // button.onInputOver.add(function(){
-    //
-    // }, this);
-    // button.onInputOut.add(out, this);
-    // button.onInputUp.add(up, this);
-    // drawnObject.anchor.setTo(0.5, 0.5);
-
+    var drawnObject = game.add.sprite(x, y, bmd);
     drawnObject.inputEnabled = true;
+    // 鼠标悬停时有白色边框
     drawnObject.events.onInputOver.add(function(){
-      console.log("当前位置 (" + i + ", " + j + ")");
-
+      // console.log("当前位置 (" + i + ", " + j + ")");
       borderGraphics.lineStyle(borderWidth, 0xffffff, 1);
-      borderGraphics.moveTo(x + 2 - borderWidth, y + 2 - borderWidth);
-      borderGraphics.lineTo(x + 2 + flagWidth, y + 2 - borderWidth);
-      borderGraphics.lineTo(x + 2 + flagWidth, y + 2 + flagHeight);
-      borderGraphics.lineTo(x + 2 - borderWidth, y + 2 + flagHeight);
-      borderGraphics.lineTo(x + 2 - borderWidth, y + 2 - borderWidth);
+      borderGraphics.moveTo(drawnObject.x + 2 - borderWidth, drawnObject.y + 2 - borderWidth);
+      borderGraphics.lineTo(drawnObject.x + 2 + flagWidth, drawnObject.y + 2 - borderWidth);
+      borderGraphics.lineTo(drawnObject.x + 2 + flagWidth, drawnObject.y + 2 + flagHeight);
+      borderGraphics.lineTo(drawnObject.x + 2 - borderWidth, drawnObject.y + 2 + flagHeight);
+      borderGraphics.lineTo(drawnObject.x + 2 - borderWidth, drawnObject.y + 2 - borderWidth);
     }, this);
+    // 鼠标出边界时清除白色边框
     drawnObject.events.onInputOut.add(function(){
-      console.log("out (" + i + ", " + j + ")")
+      // console.log("out (" + i + ", " + j + ")")
       borderGraphics.clear();
+    }, this);
+    drawnObject.events.onInputUp.add(function(){
+      if (selected) {
+        // 停止闪烁，交换位置，选中者清空
+        timer.stop();
+        timer.destroy();
+        selected.visible = true;
+
+        var tmpx, tmpy;
+        tmpx = selected.x;
+        tmpy = selected.y;
+        selected.x = drawnObject.x;
+        selected.y = drawnObject.y;
+        drawnObject.x = tmpx;
+        drawnObject.y = tmpy;
+
+        selected = null;
+      } else {
+        // 当前按钮被选中，且闪烁
+        selected = drawnObject;
+        timer = game.time.create(false);
+        timer.loop(500, function(){
+          selected.visible = !selected.visible;
+        }, this);
+        timer.start();
+      }
     }, this);
     return drawnObject;
   }
