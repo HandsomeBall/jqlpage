@@ -11,14 +11,41 @@ var timer;
 var borderWidth = 5;
 var borderGraphics;   // selected 图形设备
 
-var flags = [
-  ["1", "2", "3", "4", "5"],
-  ["6", "", "7", "", "8"],
-  ["9", "0", "", "11", "22"],
-  ["33", "", "44", "", "55"],
-  ["66", "77", "88", "99", "00"],
-  ["111", "222", "333", "444", "555"]
-];
+var prefix = "\x51\x51\x47\x61\x6d\x65\x20\x4a\x51\x4c\x20\x46\x69\x6c\x65\x00\x57\x04\x00\x00";
+var coredata = [7,11,10,9,12,4,0,13,0,5,6,4,0,13,9,8,0,10,0,11,12,7,8,13,3,3,2,3,12,11];
+var coredataChanged = false;
+
+var flagElements = [];  // 保存军棋元素
+var flag2hex = {
+    "司令": "\x05",
+    "军长": "\x06",
+    "师长": "\x07",
+    "旅长": "\x08",
+    "团长": "\x09",
+    "营长": "\x0A",
+    "连长": "\x0B",
+    "排长": "\x0C",
+    "工兵": "\x0D",
+    "炸弹": "\x04",
+    "地雷": "\x03",
+    "军棋": "\x02",
+    "": "\x00"
+};
+var hex2flag = {
+  "\x05": "司令",
+  "\x06": "军长",
+  "\x07": "师长",
+  "\x08": "旅长",
+  "\x09": "团长",
+  "\x0A": "营长",
+  "\x0B": "连长",
+  "\x0C": "排长",
+  "\x0D": "工兵",
+  "\x04": "炸弹",
+  "\x03": "地雷",
+  "\x02": "军棋",
+  "\x00": ""
+};
 
 function makeFlag(text, pos) {
   if (text) {
@@ -81,18 +108,33 @@ function preload() {
 }
 
 function create() {
-  for(var i in flags) {
-    for(var j in flags[i]) {
-      makeFlag(flags[i][j], [i, j]);
-    }
+  for(var i in coredata) {
+    var chr = String.fromCharCode(coredata[i]);
+    flagElements.push(makeFlag(hex2flag[chr], [Math.floor(i/5), Math.floor(i%5)]));
   }
   borderGraphics = game.add.graphics(0, 0);
 }
 
 function update() {
-
+  if(coredataChanged) {
+    loadCoredata(coredata)
+    coredataChanged = false;
+  }
 }
 
 $(function() {
   game = new Phaser.Game(800, 600, Phaser.AUTO, 'content', { preload: preload, create: create, update: update });
 });
+
+function loadCoredata(cd) {
+  for(var k in flagElements) {
+    var f = flagElements[k]
+    if (f) {
+      f.destroy();
+    }
+  }
+  flagElements = [];
+  for(var i in cd) {
+    flagElements.push(makeFlag(hex2flag[cd[i]], [Math.floor(i/5), Math.floor(i%5)]));
+  }
+}
