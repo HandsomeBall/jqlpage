@@ -87,12 +87,6 @@ function create() {
     }
   }
   borderGraphics = game.add.graphics(0, 0);
-  // var input = game.input; //当前游戏的input对象
-  // input.addMoveCallback(function(){
-  //   console.log(input.mousePointer);
-  // }, this);
-  // var signal = input.onDown; //鼠标按下时的 Signal对象
-  // signal.add(function(){}); //给Signal 绑定事件处理函数
 }
 
 function update() {
