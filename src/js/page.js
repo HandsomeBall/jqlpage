@@ -12,7 +12,9 @@ var borderWidth = 5;
 var borderGraphics;   // selected 图形设备
 
 var prefix = "\x51\x51\x47\x61\x6d\x65\x20\x4a\x51\x4c\x20\x46\x69\x6c\x65\x00\x57\x04\x00\x00";
-var coredata = [7,11,10,9,12,4,0,13,0,5,6,4,0,13,9,8,0,10,0,11,12,7,8,13,3,3,2,3,12,11];
+var coredata = [7,11,10,9,12,4,0,13,0,5,6,4,0,13,9,8,0,10,0,11,12,7,8,13,3,3,2,3,12,11].map(function(v){
+  return String.fromCharCode(v);
+});
 var coredataChanged = false;
 
 var flagElements = [];  // 保存军棋元素
@@ -109,15 +111,26 @@ function preload() {
 
 function create() {
   for(var i in coredata) {
-    var chr = String.fromCharCode(coredata[i]);
-    flagElements.push(makeFlag(hex2flag[chr], [Math.floor(i/5), Math.floor(i%5)]));
+    //var chr = String.fromCharCode(coredata[i]);
+    flagElements.push(makeFlag(hex2flag[coredata[i]], [Math.floor(i/5), Math.floor(i%5)]));
   }
   borderGraphics = game.add.graphics(0, 0);
 }
 
 function update() {
   if(coredataChanged) {
-    loadCoredata(coredata)
+    // 销毁之前的元素
+    for(var k in flagElements) {
+      var f = flagElements[k]
+      if (f) {
+        f.destroy();
+      }
+    }
+    // 根据数据 coredata 创建新元素
+    flagElements = [];
+    for(var i in coredata) {
+      flagElements.push(makeFlag(hex2flag[coredata[i]], [Math.floor(i/5), Math.floor(i%5)]));
+    }
     coredataChanged = false;
   }
 }
@@ -125,16 +138,3 @@ function update() {
 $(function() {
   game = new Phaser.Game(800, 600, Phaser.AUTO, 'content', { preload: preload, create: create, update: update });
 });
-
-function loadCoredata(cd) {
-  for(var k in flagElements) {
-    var f = flagElements[k]
-    if (f) {
-      f.destroy();
-    }
-  }
-  flagElements = [];
-  for(var i in cd) {
-    flagElements.push(makeFlag(hex2flag[cd[i]], [Math.floor(i/5), Math.floor(i%5)]));
-  }
-}
