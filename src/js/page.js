@@ -12,9 +12,10 @@ var borderWidth = 5;
 var borderGraphics;   // selected 图形设备
 
 var prefix = "\x51\x51\x47\x61\x6d\x65\x20\x4a\x51\x4c\x20\x46\x69\x6c\x65\x00\x57\x04\x00\x00";
+var datauriPrefix = "data:text/plain;base64,";
 var coredata = [7,11,10,9,12,4,0,13,0,5,6,4,0,13,9,8,0,10,0,11,12,7,8,13,3,3,2,3,12,11].map(function(v){
   return String.fromCharCode(v);
-});
+}).join("");  // 默认布局
 var coredataChanged = false;
 
 var flagElements = [];  // 保存军棋元素
@@ -60,6 +61,8 @@ function makeFlag(text, pos) {
     var x = marginLeft + (flagWidth + 2 * flagMargin) * j;
     var y = marginTop + (flagHeight + 2 * flagMargin) * i;
     var drawnObject = game.add.sprite(x, y, bmd);
+    drawnObject.i = i;
+    drawnObject.j = j;
     drawnObject.inputEnabled = true;
     // 鼠标悬停时有白色边框
     drawnObject.events.onInputOver.add(function(){
@@ -78,6 +81,12 @@ function makeFlag(text, pos) {
     }, this);
     drawnObject.events.onInputUp.add(function(){
       if (selected) {
+        // 更换下载数据
+        var tmp = coredata[selected.i * 5 + selected.j];
+        coredata[selected.i * 5 + selected.j] = coredata[drawnObject.i * 5 + drawnObject.j];
+        coredata[drawnObject.i * 5 + drawnObject.j] = tmp;
+        $("#savejql").prop("href", datauriPrefix + base64encode(prefix + coredata));
+
         // 停止闪烁，交换位置，选中者清空
         timer.stop();
         timer.destroy();
@@ -111,9 +120,10 @@ function preload() {
 
 function create() {
   for(var i in coredata) {
-    //var chr = String.fromCharCode(coredata[i]);
     flagElements.push(makeFlag(hex2flag[coredata[i]], [Math.floor(i/5), Math.floor(i%5)]));
   }
+  // 初始化下载内容
+  $("#savejql").prop("href", datauriPrefix + base64encode(prefix + coredata));
   borderGraphics = game.add.graphics(0, 0);
 }
 
@@ -131,6 +141,8 @@ function update() {
     for(var i in coredata) {
       flagElements.push(makeFlag(hex2flag[coredata[i]], [Math.floor(i/5), Math.floor(i%5)]));
     }
+    // 更改下载内容
+    $("#savejql").prop("href", datauriPrefix + base64encode(prefix + coredata));
     coredataChanged = false;
   }
 }
